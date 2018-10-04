@@ -16,32 +16,43 @@ public class server {
 
   public static void connect (int port) {
     try {
-      //Accept requests from the client
+      //Accept establish socket with client
       ServerSocket server = new ServerSocket(port);
+      boolean listening = true;
       //Accept incoming requests
-      Socket client = server.accept();
-      //The response the Server is sending to the Client
-      PrintWriter output = new PrintWriter(client.getOutputStream(), true);
-      output.println("Hello!");
-      //What the Server is receiving from the Client
-      BufferedReader inputStream = new BufferedReader(new InputStreamReader(client.getInputStream()));
+      while (listening) {
+        Socket client = server.accept();
+        System.out.println("get connection from " + client.getRemoteSocketAddress().toString());
+        //The response the Server is sending to the Client
+        PrintWriter output = new PrintWriter(client.getOutputStream(), true);
+        output.println("Hello!");
+        //What the Server is receiving from the Client
+        BufferedReader inputStream = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-      //Send the information back to the client
-      String input;
-      while ((input = inputStream.readLine()) != null) {
-        int answer = determineInput(input);
-        output.println(Integer.toString((answer == -6 ? -5 : answer)));
-        //Terminate the server as well
-        if (answer == -6) {
-          try {
-            server.close();
+        //Send the information back to the client
+        String input;
+        while ((input = inputStream.readLine()) != null) {
+          System.out.print("get: " + input.trim() + ", ");
+          int answer = determineInput(input.trim());
+          String returnedAnswer = Integer.toString((answer == -6 ? -5 : answer));
+          output.println(returnedAnswer);
+          System.out.println("return " + returnedAnswer);
+          //Terminate the server as well
+          if (answer == -6) {
+            try {
+              inputStream.close();
+              output.close();
+              client.close();
+              listening = false;
+            }
+            catch (IOException ex) {
+              ex.printStackTrace(System.err);
+            }
+            break;
           }
-          catch (IOException ex) {
-            ex.printStackTrace(System.err);
-          }
-          break;
         }
       }
+      server.close();
     }
     catch (Exception ex) {
       System.out.println("Server Exception: " + ex);

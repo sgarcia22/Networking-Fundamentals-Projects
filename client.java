@@ -16,6 +16,7 @@ public class client {
   }
 
   public static void connect(String serverName, int port) {
+    boolean exit = false;
     try {
       //Create a two-way communication with the server
       Socket socket = new Socket(serverName, port);
@@ -33,7 +34,9 @@ public class client {
         sendToServer.println(inputToServer);
 
         int response = Integer.parseInt(serverInput.readLine());
-        //System.out.println(serverInput.readLine());
+
+        System.out.print("receive: ");
+
         switch (response) {
 
           case -1:
@@ -54,8 +57,11 @@ public class client {
 
           case -5:
             try {
-              socket.close();
+              userInput.close();
+              serverInput.close();
+              sendToServer.close();
               System.out.println("exit");
+              exit = true;
             }
             catch (IOException ex) {
               ex.printStackTrace(System.err);
@@ -69,7 +75,7 @@ public class client {
       }
     }
     catch (Exception ex) {
-      System.out.println("Could not reach server");
+      if (exit == false) System.out.println("Could not reach server");
     }
   }
 
